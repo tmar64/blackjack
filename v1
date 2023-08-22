@@ -1,0 +1,189 @@
+
+Description: blackjack
+
+"""
+
+import random
+
+#       SPADES      CLUBS      HEARTS   DIAMONDS
+suits = ['\u2660', '\u2663', '\u2661', '\u2662']
+ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+
+
+# function to create deck
+def create_deck(amount_of_decks):
+    pre_deck = [(rank, suit) for suit in suits for rank in ranks for i in range(amount_of_decks)]
+
+    deck = list()
+
+    for i in range(52 * amount_of_decks):
+        deck.append(pre_deck[i][0] + pre_deck[i][1])
+
+    return deck
+
+
+# function to get value of hand
+def hand_value(hand):
+    hand_val = 0
+
+    if (hand[0][0] == 'R') or (hand[1][0] == 'R'):
+        hand_val = 21
+    else:
+        for card in hand:
+            if card[0] in ['J', 'Q', 'K']:
+                hand_val += 10
+            elif card[0] == 'A':
+                if hand_val + 11 > 21:
+                    hand_val += 1
+                else:
+                    hand_val += 11
+            else:
+                hand_val += int(card[0])
+
+    return hand_val
+
+
+if __name__ == '__main__':
+
+    amount_decks = int(input('How many decks of cards would you like to use? '))
+    new_deck = create_deck(amount_decks)
+
+    user_seed = input('What seed would you like to use? ')
+    random.seed(user_seed)
+
+    r_card = int(input('How many Retriever cards would you like to add? '))
+    for i in range(r_card):
+        new_deck.append('R*')
+
+    random.shuffle(new_deck)
+
+    dealer_hand = list()
+    user_hand = list()
+
+    print(new_deck)
+
+    # sets user and dealer hand val as 0
+    user_val = 0
+    dealer_val = 0
+
+    # sets quatloos and asks user for bet
+    quatloos = 100
+
+    # main while loop
+    flag = True
+    while flag:
+
+        user_bet = int(input(f'You have {quatloos} quatloos, how many would you like to bet? '))
+
+        # deals first 4 cards to dealer and player
+        for i in range(2):
+            dealer_hand.append(new_deck[i])
+            user_hand.append(new_deck[i + 2])
+
+        # removes first 4 cards from deck that were dealt
+        new_deck = new_deck[4:]
+        print(new_deck)
+        # calculates hand value and passes it to respective variables
+        dealer_val = hand_value(dealer_hand)
+        user_val = hand_value(user_hand)
+
+        hidden = '\u2588\u2588'
+
+        print(f'The dealer\'s hand is: {hidden} {dealer_hand[0]}')
+        print('Your hand is:', *user_hand, 'and has value', user_val)
+
+        # inner while loop
+        play_again = True
+        while play_again:
+
+            game_command = input('What would you like to do? [hit, stay] ')
+
+            # if user chooses 'hit'
+            if game_command.lower() == 'hit':
+
+                # dealer hits or stays
+                if dealer_val < 17:
+                    dealer_hand.append(new_deck[0])
+                    new_deck.remove(new_deck[0])
+                    dealer_val = hand_value(dealer_hand)
+                else:
+                    pass
+
+                # user hits
+                user_hand.append(new_deck[0])
+                new_deck.remove(new_deck[0])
+                user_val = hand_value(user_hand)
+
+                print("Your hand is:", *user_hand, 'and has value', user_val)
+
+                # checks hand value
+
+                if user_val == 21 and dealer_val == 21:
+                    print('The dealer\'s hand is:', *dealer_hand, 'and has value', dealer_val)
+                    print('Push, nobody wins')
+                else:
+                    if user_val > 21:
+                        print('The dealer\'s hand is:', *dealer_hand, 'and has value', dealer_val)
+                        print('You have busted, sorry.')
+                        quatloos -= user_bet
+                    elif user_val == 21:
+                        print('The dealer\'s hand is:', *dealer_hand, 'and has value', dealer_val)
+                        print('Blackjack, you wins!')
+                        quatloos += user_bet
+                    elif dealer_val > 21:
+                        print('The dealer\'s hand is:', *dealer_hand, 'and has value', dealer_val)
+                        print('Dealer busted, you win.')
+                        quatloos += user_bet
+                    elif dealer_val == 21:
+                        print('The dealer\'s hand is:', *dealer_hand, 'and has value', dealer_val)
+                        print('Blackjack, dealer wins!')
+                        quatloos -= user_bet
+                    else:
+                        continue
+
+            # if user chooses 'stay'
+            elif game_command.lower() == 'stay':
+
+                # dealer hits or stays
+                if dealer_val < 17:
+                    dealer_hand.append(new_deck[0])
+                    new_deck.remove(new_deck[0])
+                    dealer_val = hand_value(dealer_hand)
+                else:
+                    pass
+
+                print("Your hand is:", *user_hand, 'and has value', user_val)
+
+                # checks hand value
+
+                if user_val > 21:
+                    print('The dealer\'s hand is:', *dealer_hand, 'and has value', dealer_val)
+                    print('You have busted, sorry.')
+                    quatloos -= user_bet
+                elif user_val == 21:
+                    print('The dealer\'s hand is:', *dealer_hand, 'and has value', dealer_val)
+                    print('Blackjack, you wins!')
+                    quatloos += user_bet
+                elif dealer_val > 21:
+                    print('The dealer\'s hand is:', *dealer_hand, 'and has value', dealer_val)
+                    print('Dealer busted, you win.')
+                    quatloos += user_bet
+                elif dealer_val == 21:
+                    print('The dealer\'s hand is:', *dealer_hand, 'and has value', dealer_val)
+                    print('Blackjack, dealer wins!')
+                    quatloos -= user_bet
+                else:
+                    continue
+
+            # exit commands that execute once the game is over
+            exit_command = input('Would you like to play again? [y/yes] ')
+
+            if exit_command.lower() == 'yes':
+                play_again = False
+                dealer_hand.clear()
+                user_hand.clear()
+
+            elif exit_command.lower() == 'no':
+                play_again = False
+                flag = False
+                print(f'You ended the game with {quatloos} quatloos!')
